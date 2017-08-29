@@ -1,10 +1,14 @@
-# RGBDTAM (No ROS):
+# RGBDTAM:
 
-This is a ROS-free version of RGBDTAM - a SLAM system that estimates a dense reconstruction of a scene in real-time and on a CPU using RGB-D cameras. 
+RGBDTAM is a SLAM system that estimates a dense reconstruction of a scene in real-time and on a CPU using RGB-D cameras. 
 
 Related Publication:
 [1] Alejo Concha, Javier Civera. RGBDTAM: A cost-effective and accurate RGBD Tracking and Mapping System. https://arxiv.org/pdf/1703.00754.pdf
 
+Video of the results that you should expect:
+https://youtu.be/sc-hqtJtHD4
+
+ 
 # License
 
 RGBDTAM is licensed under the GNU General Public License Version 3 (GPLv3), please see http://www.gnu.org/licenses/gpl.html.
@@ -17,6 +21,19 @@ For commercial purposes, please contact the authors.
 This site and the code provided here are under active development. Even though we try to only release working high quality code, this version might still contain some issues. Please use it with caution.
 
 # Dependencies
+
+ROS:
+
+We have tested RGBDTAM in Ubuntu 14.04 with ROS Indigo.
+
+To install ROS (indigo) use the following command:
+
+     sudo apt-get install ros-indigo-desktop
+     
+Or check the following link if you have any issue:
+
+    http://wiki.ros.org/indigo/Installation/Ubuntu
+     
 
 PCL library for visualization:
 
@@ -49,10 +66,35 @@ We have used the vocabulary created by ORB-SLAM authors. Please, download the vo
 
 
 3-) Compile rgbdtam
-    mkdir build
-    cd build  
-    cmake ..
-    make
+      
+    catkin_make rgbdtam -j3
+
+# Usage with a '.bag' sequence
+
+Launch rgbdtam from your 'catkin_workspace' folder:
+     
+    cd root/catkin_workspace 
+    rosrun rgbdtam rgbdtam
+    
+
+Launch the visualizer of the current frame
+
+    rosrun image_view image_view image:=/rgbdtam/camera/image
+
+
+Now you need a sequence or a depth camera. For example, download this sequence (ROS bag format) from the TUM dataset: http://vision.in.tum.de/rgbd/dataset/freiburg3/rgbd_dataset_freiburg3_long_office_household.bag.
+
+Use the following command to remove the unnecessary topics from the sequence
+
+    rosbag filter rgbd_dataset_freiburg3_long_office_household.bag new_office_household.bag "topic=='/camera/rgb/image_color' or topic == '/camera/depth/image'"
+    
+Play the new sequence
+    
+    rosbag play new_office_household.bag
+    
+
+Do not move the visualizer point of view until the sequence has finished (only zoom in/out), or it will get lost otherwise. We will fix this issue in the near future. You can also see the reconstrucction with meshlab after the sequence has finished. Open the following file 'rgbdtam/src/results_depth_maps/reconstruction_after_optimization_total.ply
+
 
 There are four parameters that you have to modify (before executing a sequence) in rgbdtam/src/data.yml:
 
@@ -68,6 +110,20 @@ There are four parameters that you have to modify (before executing a sequence) 
 
 'depth_camera_path'
 
+# Usage with ASUS depth camera
+
+Run rgbdtam with the rectified rgb and depth images.
+
+    rosrun rgbdtam rgbdtam /camera/rgb/image_color:=/camera/rgb/image_rect_color /camera/depth/image:=/camera/depth/image_rect
+
+Go to your oppenni2.launch file and set depth_ragistration to true:
+
+arg name="depth_registration" default="true" 
+
+Then, run it.
+
+    roslaunch openni2.launch 
+ 
 
 # Parameters
 
@@ -99,10 +155,8 @@ use_depth_tracking: [bool]. If false, geometric error will not be minimized (onl
 depth_range_print: [float]. If higher far away points will also be displayed. Default: 1.7 (meters).
 
 # Contact
-For this ROS-free version:
-     Ronald Clark -> ron.clark@live.com
 
-For original code, please contact the authors:
+If you have any issue compiling/running rgbdtam or you would like to know anything about the code, please contact the authors:
 
      Alejo Concha -> aconchabelenguer@gmail.com
 
